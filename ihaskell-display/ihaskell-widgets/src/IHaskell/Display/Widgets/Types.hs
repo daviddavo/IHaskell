@@ -121,6 +121,8 @@ type (a :++ b) = a ++ b
 type WidgetClass = ['S.ViewModule, 'S.ViewModuleVersion, 'S.ViewName, 
   'S.ModelModule, 'S.ModelModuleVersion, 'S.ModelName, 'S.MsgThrottle, 'S.DisplayHandler]
 
+type OutputWidgetClass = WidgetClass
+
 type DOMWidgetClass = WidgetClass :++ ['S.Visible, 'S.CSS, 'S.DOMClasses, 'S.Width, 'S.Height, 'S.Padding,
   'S.Margin, 'S.Color, 'S.BackgroundColor, 'S.BorderColor, 'S.BorderWidth,
   'S.BorderRadius, 'S.BorderStyle, 'S.FontStyle, 'S.FontWeight,
@@ -302,7 +304,7 @@ type family WidgetFields (w :: WidgetType) :: [Field] where
                     ]
   WidgetFields 'ImageType =
                   DOMWidgetClass :++ ['S.ImageFormat, 'S.Width, 'S.Height, 'S.B64Value]
-  WidgetFields 'OutputType = DOMWidgetClass
+  WidgetFields 'OutputType = WidgetClass
   WidgetFields 'HTMLType = StringClass
   WidgetFields 'LabelType = StringClass
   WidgetFields 'TextType =
@@ -649,17 +651,33 @@ s =:+ val = Attr
 reflect :: forall (f :: Field). (SingI f) => Sing f -> Field
 reflect = fromSing
 
+defaultWidgetCommon :: Rec Attr ['S.MsgThrottle, 'S.DisplayHandler]
+defaultWidgetCommon = (MsgThrottle =:+ 3)
+            :& (DisplayHandler =:: return ())
+            :& RNil
+
 -- | A record representing a Widget class from IPython from the controls modules
 defaultControlWidget :: FieldType 'S.ViewName -> FieldType 'S.ModelName -> Rec Attr WidgetClass
-defaultControlWidget viewName modelName = (ViewModule =:: "@jupyter-widgets/controls")
+defaultControlWidget viewName modelName = attrs <+> defaultWidgetCommon
+                            where
+                              attrs = (ViewModule =:: "@jupyter-widgets/controls")
                                    :& (ViewModuleVersion =:: "1.4.0")
                                    :& (ViewName =:: viewName)
                                    :& (ModelModule =:: "@jupyter-widgets/controls")
                                    :& (ModelModuleVersion =:: "1.4.0")
                                    :& (ModelName =:: modelName)
-                                   :& (MsgThrottle =:+ 3)
-                                   :& (DisplayHandler =:: return ())
                                    :& RNil
+
+defaultOutputWidget :: Rec Attr OutputWidgetClass
+defaultOutputWidget = attrs <+> defaultWidgetCommon
+              where
+                attrs = (ViewModule =:: "@jupyter-widgets/output")
+                  :& (ViewModuleVersion =:: "1.0.0")
+                  :& (ViewName =:: "OutputView")
+                  :& (ModelModule =:: "@jupyter-widgets/output")
+                  :& (ModelModuleVersion =:: "1.0.0")
+                  :& (ModelName =:: "OutputModel")
+                  :& RNil
 
 -- | A record representing an object of the DOMWidget class from IPython
 defaultDOMWidget :: FieldType 'S.ViewName -> FieldType 'S.ModelName -> Rec Attr DOMWidgetClass

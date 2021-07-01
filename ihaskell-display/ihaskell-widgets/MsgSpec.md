@@ -60,6 +60,25 @@ content = {
 }
 ```
 
+## Console output
+
+To be able to display some console output from, for example, a print
+inside some handler, we can't use the `display_data` method.
+We need to send a `stream` message to an output widget. More info available [here](https://jupyter-client.readthedocs.io/en/5.2.3/messaging.html#streams-stdout-stderr-etc).
+
+```json
+method = "stream",
+content = {
+    # The name of the stream is one of 'stdout', 'stderr'
+    "name" : str,
+
+    # The text is an arbitrary string to be written to that stream
+    "text" : str,
+}
+```
+
+You need to send an `update` message
+
 ## Custom messages
 
 * Widgets can also send a custom message, having the form:

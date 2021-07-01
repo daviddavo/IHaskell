@@ -230,6 +230,9 @@ data WidgetMsg = Open Widget Value
                |
                -- ^ Cause the interpreter to close the comm associated with the widget. Also sends
                -- data with comm_close.
+                Stream Widget StreamType String
+               |
+               -- ^ Sends an stream message
                 Custom Widget Value
                |
                -- ^ A [method .= custom, content = value] message

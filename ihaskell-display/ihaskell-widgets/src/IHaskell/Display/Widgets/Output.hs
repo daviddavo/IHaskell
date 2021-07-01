@@ -11,6 +11,7 @@ module IHaskell.Display.Widgets.Output
     -- * Constructor
   , mkOutputWidget
     -- * Using the output widget
+  , printOutput
   , appendOutput
   , clearOutput
   , clearOutput_
@@ -21,10 +22,12 @@ module IHaskell.Display.Widgets.Output
 import           Prelude
 
 import           Data.Aeson
+import           Data.Text
 import           Data.IORef (newIORef)
 
 import           IHaskell.Display
 import           IHaskell.Eval.Widgets
+import           IHaskell.IPython.Types
 import           IHaskell.IPython.Message.UUID as U
 
 import           IHaskell.Display.Widgets.Types
@@ -38,7 +41,7 @@ mkOutputWidget = do
   -- Default properties, with a random uuid
   wid <- U.random
 
-  let widgetState = WidgetState $ defaultDOMWidget "OutputView" "OutputModel"
+  let widgetState = WidgetState defaultOutputWidget
 
   stateIO <- newIORef widgetState
 
@@ -50,11 +53,16 @@ mkOutputWidget = do
   -- Return the image widget
   return widget
 
+printOutput :: OutputWidget -> String -> IO ()
+printOutput out val = do
+  widgetSendStream out Stdout val
+
 -- | Append to the output widget
 appendOutput :: IHaskellDisplay a => OutputWidget -> a -> IO ()
 appendOutput widget out = do
   disp <- display out
   widgetPublishDisplay widget disp
+  widgetSendView widget
 
 -- | Clear the output widget immediately
 clearOutput :: OutputWidget -> IO ()

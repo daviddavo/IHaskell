@@ -4,6 +4,7 @@ module IHaskell.Eval.Widgets (
     widgetSendView,
     widgetSendUpdate,
     widgetSendCustom,
+    widgetSendStream,
     widgetSendClose,
     widgetSendValue,
     widgetPublishDisplay,
@@ -65,6 +66,9 @@ widgetSendView = queue . View . Widget
 -- | Send a comm_close
 widgetSendClose :: IHaskellWidget a => a -> Value -> IO ()
 widgetSendClose = widgetSend Close
+
+widgetSendStream :: IHaskellWidget a => a -> StreamType  -> String -> IO ()
+widgetSendStream widget o val = queue $ Stream (Widget widget) o val
 
 -- | Send a [method .= custom, content .= value] comm_msg
 widgetSendCustom :: IHaskellWidget a => a -> Value -> IO ()
@@ -143,6 +147,12 @@ handleMessage send replyHeader state msg = do
     Custom widget value -> sendMessage widget (toJSON $ CustomContent value)
 
     JSONValue widget value -> sendMessage widget value
+
+    Stream widget t value -> do
+      putStrLn "Hello world?"
+      hdr <- dupHeader replyHeader StreamMessage
+      send $ PublishStream hdr t value
+      return state
 
     DispMsg widget disp -> do
       dispHeader <- dupHeader replyHeader DisplayDataMessage
