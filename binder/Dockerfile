@@ -1,0 +1,1 @@
+FROM daviddavo/ihaskell:latest
